@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Operations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .matrix-input {
+            margin-bottom: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            background-color: #e0f7fa;
+            border: 1px solid #00acc1;
+            border-radius: 5px;
+            padding: 10px;
+            display: inline-block;
+        }
+        input[type="number"], input[type="text"], select, button {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #00acc1;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #007c91;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Matrix Operations</h1>
+        <label for="num_matrices">Number of Matrices:</label>
+        <input type="number" id="num_matrices" min="1" required>
+        <div id="matrix-inputs"></div>
+        <label for="operation">Operation:</label>
+        <select id="operation">
+            <option value="addition">Addition</option>
+            <option value="subtraction">Subtraction</option>
+            <option value="multiplication">Multiplication</option>
+            <option value="inverse">Inverse (for single matrix)</option>
+        </select>
+        <button onclick="calculate()">Calculate</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('num_matrices').addEventListener('input', function() {
+            const numMatrices = parseInt(this.value);
+            const matrixInputs = document.getElementById('matrix-inputs');
+            matrixInputs.innerHTML = '';
+
+            for (let i = 0; i < numMatrices; i++) {
+                const matrixDiv = document.createElement('div');
+                matrixDiv.className = 'matrix-input';
+                matrixDiv.innerHTML = `
+                    <h3>Matrix ${i + 1}</h3>
+                    <label for="rows_${i}">Rows:</label>
+                    <input type="number" id="rows_${i}" required>
+                    <label for="cols_${i}">Cols:</label>
+                    <input type="number" id="cols_${i}" required>
+                    <div id="matrix_${i}_rows"></div>
+                `;
+                matrixInputs.appendChild(matrixDiv);
+
+                document.getElementById(`rows_${i}`).addEventListener('input', () => updateMatrixInput(i));
+                document.getElementById(`cols_${i}`).addEventListener('input', () => updateMatrixInput(i));
+            }
+
+            // Enable or disable the inverse option based on the number of matrices
+            const operationSelect = document.getElementById('operation');
+            const inverseOption = operationSelect.querySelector('option[value="inverse"]');
+            if (numMatrices === 1) {
+                inverseOption.disabled = false;
+            } else {
+                inverseOption.disabled = true;
+                if (operationSelect.value === 'inverse') {
+                    operationSelect.value = 'addition';
+                }
+            }
+        });
+
+        function updateMatrixInput(matrixIndex) {
+            const rows = parseInt(document.getElementById(`rows_${matrixIndex}`).value);
+            const cols = parseInt(document.getElementById(`cols_${matrixIndex}`).value);
+            const matrixRows = document.getElementById(`matrix_${matrixIndex}_rows`);
+            matrixRows.innerHTML = '';
+
+            for (let r = 0; r < rows; r++) {
+                const rowInput = document.createElement('input');
+                rowInput.type = 'text';
+                rowInput.id = `matrix_${matrixIndex}_row_${r}`;
+                rowInput.placeholder = `Enter ${cols} values separated by spaces`;
+                rowInput.required = true;
+                matrixRows.appendChild(rowInput);
+                matrixRows.appendChild(document.createElement('br'));
+            }
+        }
+
+        function getMatrix(matrixIndex, rows, cols) {
+            const matrix = [];
+            for (let r = 0; r < rows; r++) {
+                const row = document.getElementById(`matrix_${matrixIndex}_row_${r}`).value.split(' ').map(Number);
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        function addMatrices(a, b) {
+            const result = [];
+            for (let i = 0; i < a.length; i++) {
+                const row = [];
+                for (let j = 0; j < a[0].length; j++) {
+                    row.push(a[i][j] + b[i][j]);
+                }
+                result.push(row);
+            }
+            return result;
+        }
+
+        function subtractMatrices(a, b) {
+            const result = [];
+            for (let i = 0; i < a.length; i++) {
+                const row = [];
+                for (let j = 0; j < a[0].length; j++) {
+                    row.push(a[i][j] - b[i][j]);
+                }
+                result.push(row);
+            }
+            return result;
+        }
+
+        function multiplyMatrices(a, b) {
+            const result = [];
+            for (let i = 0; i < a.length; i++) {
+                const row = [];
+                for (let j = 0; j < b[0].length; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < a[0].length; k++) {
+                        sum += a[i][k] * b[k][j];
+                    }
+                    row.push(sum);
+                }
+                result.push(row);
+            }
+            return result;
+        }
+
+        function inverseMatrix(matrix) {
+            const n = matrix.length;
+            const identity = [];
+            for (let i = 0; i < n; i++) {
+                identity[i] = [];
+                for (let j = 0; j < n; j++) {
+                    identity[i][j] = i === j ? 1 : 0;
+                }
+            }
+
+            for (let i = 0; i < n; i++) {
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(matrix[k][i]) > Math.abs(matrix[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+
+                let temp = matrix[i];
+                matrix[i] = matrix[maxRow];
+                matrix[maxRow] = temp;
+
+                temp = identity[i];
+                identity[i] = identity[maxRow];
+                identity[maxRow] = temp;
+
+                for (let k = i + 1; k < n; k++) {
+                    const factor = matrix[k][i] / matrix[i][i];
+                    for (let j = i; j < n; j++) {
+                        matrix[k][j] -= factor * matrix[i][j];
+                    }
+                    for (let j = 0; j < n; j++) {
+                        identity[k][j] -= factor * identity[i][j];
+                    }
+                }
+            }
+
+            for (let i = n - 1; i >= 0; i--) {
+                const divisor = matrix[i][i];
+                for (let j = 0; j < n; j++) {
+                    matrix[i][j] /= divisor;
+                    identity[i][j] /= divisor;
+                }
+                for (let k = i - 1; k >= 0; k--) {
+                    const factor = matrix[k][i];
+                    for (let j = 0; j < n; j++) {
+                        matrix[k][j] -= factor * matrix[i][j];
+                        identity[k][j] -= factor * identity[i][j];
+                    }
+                }
+            }
+
+            return identity;
+        }
+
+        function displayMatrix(matrix) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<h3>Result:</h3>';
+            matrix.forEach(row => {
+                resultDiv.innerHTML += row.join(' ') + '<br>';
+            });
+        }
+
+        function calculate() {
+            const numMatrices = parseInt(document.getElementById('num_matrices').value);
+            const operation = document.getElementById('operation').value;
+            const matrices = [];
+
+            for (let i = 0; i < numMatrices; i++) {
+                const rows = parseInt(document.getElementById(`rows_${i}`).value);
+                const cols = parseInt(document.getElementById(`cols_${i}`).value);
+                matrices.push(getMatrix(i, rows, cols));
+            }
+
+            let result = matrices[0];
+            if (operation === 'inverse') {
+                if (result.length !== result[0].length) {
+                    alert('Matrix must be square for inversion.');
+                    return;
+                }
+                result = inverseMatrix(result);
+            } else {
+                for (let i = 1; i < matrices.length; i++) {
+                    if (operation === 'addition') {
+                        result = addMatrices(result, matrices[i]);
+                    } else if (operation === 'subtraction') {
+                        result = subtractMatrices(result, matrices[i]);
+                    } else if (operation === 'multiplication') {
+                        result = multiplyMatrices(result, matrices[i]);
+                    }
+                }
+            }
+
+            displayMatrix(result);
+        }
+    </script>
+</body>
+</html>
