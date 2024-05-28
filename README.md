@@ -1,8 +1,8 @@
 # math_project
-This will be useful to perform operations  like 
+This will be useful to perform operations  like :
 <br>
-calculation   
+1)calculation   
 <brr>
-matrix operation 
+2)matrix operation 
 <br>
-Quadratic equation solving.
+3)Quadratic equation solving.
