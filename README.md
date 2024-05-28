@@ -1,7 +1,7 @@
 # math_project
 username="user"
 <br> 
-pssword="21"
+pssword="password"
 <br>
 This will be useful to perform operations  like :
 <br>
